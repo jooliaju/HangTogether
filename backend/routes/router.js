@@ -1,6 +1,6 @@
 const express = require("express");
 const router = express.Router();
-const schemas = require("../models/schema");
+const schemas = require("../model/schema");
 
 router.get("/", (req, res) => {
   res.send("Hello World!");
@@ -9,6 +9,7 @@ router.get("/", (req, res) => {
 router.post("/users", async (req, res) => {
   try {
     const userData = new schemas.Users({
+      userId: req.body.userId,
       userName: req.body.userName,
       email: req.body.email,
     });

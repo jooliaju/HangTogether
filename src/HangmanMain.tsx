@@ -2,11 +2,28 @@ import { useCallback, useEffect, useState } from "react";
 import { HangmanDrawing } from "./HangmanDrawing";
 import { HangmanWord } from "./HangmanWord";
 import { Keyboard } from "./Keyboard";
+import { UserAuth } from "./auth/AuthContext";
+import { useNavigate } from "react-router-dom";
 
 function HangmanMain() {
   const [wordToGuess, setWordToGuess] = useState("microscope");
 
   const [guessedLetters, setGuessedLetters] = useState<string[]>([]);
+
+  const { user } = UserAuth()!;
+
+  const { logout } = UserAuth()!;
+  const navigate = useNavigate();
+
+  const handleLogout = async () => {
+    try {
+      await logout();
+      navigate("/");
+      console.log("logged out");
+    } catch (error) {
+      console.log("error");
+    }
+  };
 
   const incorrectLetters = guessedLetters.filter(
     (letter) => !wordToGuess.includes(letter)
@@ -56,6 +73,8 @@ function HangmanMain() {
         {isWinner && "You win!!"}
         {isLoser && "You lose :("}
       </div>
+      <div>Hi {user?.email}</div>
+      <button onClick={handleLogout}> Log out :)</button>
       <HangmanDrawing numberOfGuesses={incorrectLetters.length} />
       <HangmanWord
         word={wordToGuess}

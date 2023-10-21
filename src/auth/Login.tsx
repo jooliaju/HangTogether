@@ -1,7 +1,7 @@
 //@ts-nocheck
 
 import { signInWithEmailAndPassword } from "firebase/auth";
-import { auth } from "../firebase";
+import { auth } from "./firebase";
 import { useState } from "react";
 import { UserAuth } from "./AuthContext";
 import { useNavigate } from "react-router-dom";
@@ -19,6 +19,7 @@ function Login() {
     //write try catch
     try {
       await signIn(email, password);
+      console.log("logged in");
       navigate("/hangman");
     } catch (error) {
       console.log(error);

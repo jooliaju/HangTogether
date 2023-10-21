@@ -24,26 +24,6 @@ export function Home() {
         Welcome to HangTogether!
       </span>
 
-      <span
-        style={{
-          fontSize: "2rem",
-        }}
-      >
-        Click here to play hangman
-      </span>
-
-      <Link to="/hangman">
-        <button
-          style={{
-            backgroundColor: "#6486ff",
-            padding: "20px",
-            fontFamily: "monospace",
-          }}
-        >
-          Enter Game
-        </button>
-      </Link>
-
       <Signup />
       <Login />
     </div>

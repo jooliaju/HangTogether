@@ -1,7 +1,7 @@
 //@ts-nocheck
 
 import { createUserWithEmailAndPassword } from "firebase/auth";
-import { auth } from "../firebase";
+import { auth } from "./firebase";
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { UserAuth } from "./AuthContext";
@@ -20,6 +20,7 @@ function Signup() {
 
     try {
       await createUser(email, password);
+      console.log("signed up");
       navigate("/hangman");
     } catch (error) {
       console.log(error);
