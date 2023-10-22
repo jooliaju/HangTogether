@@ -3,22 +3,25 @@ import HangmanMain from "./HangmanMain";
 import { Home } from "./Home";
 import { AuthContextProvider } from "./auth/AuthContext";
 import ProtectedRoute from "./routes/ProtectedRoute";
+import { ChakraProvider } from "@chakra-ui/react";
 
 function App() {
   return (
     <AuthContextProvider>
-      <Routes>
-        <Route path="/" element={<Home />} />
+      <ChakraProvider>
+        <Routes>
+          <Route path="/" element={<Home />} />
 
-        <Route
-          path="/hangman"
-          element={
-            <ProtectedRoute>
-              <HangmanMain />
-            </ProtectedRoute>
-          }
-        />
-      </Routes>
+          <Route
+            path="/hangman"
+            element={
+              <ProtectedRoute>
+                <HangmanMain />
+              </ProtectedRoute>
+            }
+          />
+        </Routes>
+      </ChakraProvider>
     </AuthContextProvider>
   );
 }

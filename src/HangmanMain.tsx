@@ -4,6 +4,8 @@ import { HangmanWord } from "./HangmanWord";
 import { Keyboard } from "./Keyboard";
 import { UserAuth } from "./auth/AuthContext";
 import { useNavigate } from "react-router-dom";
+import Invite from "./Invite";
+import { Button } from "@chakra-ui/react";
 
 function HangmanMain() {
   const [wordToGuess, setWordToGuess] = useState("microscope");
@@ -14,6 +16,12 @@ function HangmanMain() {
 
   const { logout } = UserAuth()!;
   const navigate = useNavigate();
+
+  //handling modal state
+  const [modalOpenState, setModalOpenState] = useState(false);
+  const handleModalStateChange = (isOpen: boolean) => {
+    setModalOpenState(isOpen);
+  };
 
   const handleLogout = async () => {
     try {
@@ -49,10 +57,15 @@ function HangmanMain() {
 
   useEffect(() => {
     const handler = (e: KeyboardEvent) => {
-      const key = e.key;
-      if (!key.match(/^[a-z]$/)) return;
-      e.preventDefault();
-      addGuessedLetter(key);
+      //only add guessed letter if modal is not open
+      if (!modalOpenState) {
+        const key = e.key;
+        if (!key.match(/^[a-z]$/)) return;
+        e.preventDefault();
+        addGuessedLetter(key);
+      } else {
+        return;
+      }
     };
     document.addEventListener("keypress", handler);
     return () => document.removeEventListener("keypress", handler);
@@ -74,7 +87,10 @@ function HangmanMain() {
         {isLoser && "You lose :("}
       </div>
       <div>Hi {user?.email}</div>
-      <button onClick={handleLogout}> Log out :)</button>
+      <Button onClick={handleLogout}> Log out :)</Button>
+
+      <Invite onModalStateChange={handleModalStateChange} />
+
       <HangmanDrawing numberOfGuesses={incorrectLetters.length} />
       <HangmanWord
         word={wordToGuess}

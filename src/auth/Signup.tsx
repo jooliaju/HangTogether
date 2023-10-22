@@ -5,6 +5,7 @@ import { auth } from "./firebase";
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { UserAuth } from "./AuthContext";
+import { Button } from "@chakra-ui/react";
 
 function Signup() {
   const [username, setUsername] = useState("");
@@ -49,7 +50,7 @@ function Signup() {
           value={password}
           onChange={(e) => setPassword(e.target.value)}
         />
-        <button type="submit">Sign Up</button>
+        <Button type="submit">Sign Up</Button>
       </form>
     </div>
   );
