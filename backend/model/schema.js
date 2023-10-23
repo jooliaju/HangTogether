@@ -8,8 +8,16 @@ const usersSchema = new Schema({
   partner: { type: String, required: false },
 });
 
-const Users = mongoose.model("Users", usersSchema, "users");
+const gamesSchema = new Schema({
+  partner1: { type: String, required: true },
+  partner2: { type: String, required: true },
+  dateStarted: { type: Date, required: true },
+  activeStatus: { type: Boolean, required: true }, //this changes if someone removes the game
+});
 
-const schemas = { Users: Users };
+const Users = mongoose.model("Users", usersSchema, "users");
+const Games = mongoose.model("Games", gamesSchema, "games");
+
+const schemas = { Users: Users, Games: Games };
 
 module.exports = schemas;

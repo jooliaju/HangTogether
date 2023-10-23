@@ -27,12 +27,12 @@ function Invite({ onModalStateChange }: InviteProps) {
 
   const { user } = UserAuth()!;
 
-  // Handle invite api
+  // Handle invites
   const sendInvite = async () => {
     try {
       const response = await axios.post("http://localhost:4000/invite", {
         recipientEmail: inputEmail,
-        senderEmail: user?.email,
+        senderId: user?.uid,
         gameId: "123123123",
       });
 

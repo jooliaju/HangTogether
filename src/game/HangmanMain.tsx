@@ -2,9 +2,9 @@ import { useCallback, useEffect, useState } from "react";
 import { HangmanDrawing } from "./HangmanDrawing";
 import { HangmanWord } from "./HangmanWord";
 import { Keyboard } from "./Keyboard";
-import { UserAuth } from "./auth/AuthContext";
+import { UserAuth } from "../auth/AuthContext";
 import { useNavigate } from "react-router-dom";
-import Invite from "./Invite";
+import Invite from "../Invite";
 import { Button } from "@chakra-ui/react";
 
 function HangmanMain() {

@@ -27,6 +27,27 @@ router.post("/users", async (req, res) => {
   }
 });
 
+router.post("/newgame", async (req, res) => {
+  const dateTime = new Date();
+
+  try {
+    const gameData = new schemas.Games({
+      partner1: req.body.partner1,
+      partner2: req.body.partner2,
+      dateStarted: dateTime,
+      activeStatus: true,
+    });
+
+    const newGame = new schemas.Games(gameData);
+    const savedGame = await newGame.save();
+
+    res.status(201).json(savedGame);
+    console.log("New game created!");
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
 //mailing logic
 // Invitation endpoint
 router.post("/invite", async (req, res) => {
@@ -39,7 +60,7 @@ router.post("/invite", async (req, res) => {
     whoSentInvite: senderId,
     gameId: gameId,
   };
-  const token = generateToken(tokenData); // Replace with your token generation logic
+  const token = generateToken(tokenData);
 
   const mailOptions = getEmailDetails(recipientEmail, token);
 

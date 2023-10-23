@@ -15,14 +15,21 @@
     "@emotion/styled": "^11.11.0",
     "@types/firebase": "^3.2.1",
     "axios": "^1.5.1",
+    "buffer": "^6.0.3",
     "firebase": "^10.5.0",
     "firebase-auth": "^0.1.2",
     "framer-motion": "^10.16.4",
+    "jose": "^4.15.4",
+    "jsonwebtoken": "^9.0.2",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
-    "react-router-dom": "^6.17.0"
+    "react-router-dom": "^6.17.0",
+    "safe-buffer": "^5.2.1"
   },
   "devDependencies": {
+    "@esbuild-plugins/node-globals-polyfill": "^0.2.3",
+    "@esbuild-plugins/node-modules-polyfill": "^0.2.2",
+    "@types/jsonwebtoken": "^9.0.4",
     "@types/react": "^18.2.15",
     "@types/react-dom": "^18.2.7",
     "@typescript-eslint/eslint-plugin": "^6.0.0",

@@ -10,7 +10,7 @@ const transporter = nodemailer.createTransport({
 });
 
 function getEmailDetails(email, token) {
-  const invitationLink = "http://localhost:5173/?token=" + token;
+  const invitationLink = "http://localhost:5173/invitation?token=" + token;
 
   const mailOptions = {
     from: process.env.TEST_EMAIL,
