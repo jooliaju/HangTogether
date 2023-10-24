@@ -51,9 +51,10 @@ export const AuthContextProvider = ({ children }: AuthContextProviderProps) => {
       // Axios call to save user to MongoDB
       await axios
         .post("http://localhost:4000/users", {
-          userId: userCredential.user.uid,
-          userName: "just a test",
+          _id: userCredential.user.uid,
+          userName: "Johnny Doe",
           email: email,
+          gameMemberOf: "",
         })
         .then((res) => {
           console.log(res);

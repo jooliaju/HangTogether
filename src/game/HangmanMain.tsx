@@ -3,16 +3,20 @@ import { HangmanDrawing } from "./HangmanDrawing";
 import { HangmanWord } from "./HangmanWord";
 import { Keyboard } from "./Keyboard";
 import { UserAuth } from "../auth/AuthContext";
+// import { getMongoUser } from "../auth/MongoUser";
 import { useNavigate } from "react-router-dom";
 import Invite from "../Invite";
 import { Button } from "@chakra-ui/react";
+import { Text } from "@chakra-ui/react";
+import axios from "axios";
 
-function HangmanMain() {
+async function HangmanMain() {
   const [wordToGuess, setWordToGuess] = useState("microscope");
 
   const [guessedLetters, setGuessedLetters] = useState<string[]>([]);
 
-  const { user } = UserAuth()!;
+  // const { user } = UserAuth()!;
+  // const mongoUser = user ? await getMongoUser(user.uid) : null;
 
   const { logout } = UserAuth()!;
   const navigate = useNavigate();
@@ -32,6 +36,19 @@ function HangmanMain() {
       console.log("error");
     }
   };
+
+  // const handleGameData = async () => {
+  //   try {
+  //     if (mongoUser) {
+  //       const response = await axios.get(
+  //         `http://localhost:4000/games/${mongoUser["gameMemberOf"]}'}`
+  //       );
+  //       console.log("User is member of: " + response.data);
+  //     }
+  //   } catch (error) {
+  //     console.error("Error getting game data:", error);
+  //   }
+  // };
 
   const incorrectLetters = guessedLetters.filter(
     (letter) => !wordToGuess.includes(letter)
@@ -82,11 +99,9 @@ function HangmanMain() {
         alignItems: "center",
       }}
     >
-      <div>
-        {isWinner && "You win!!"}
-        {isLoser && "You lose :("}
-      </div>
-      <div>Hi {user?.email}</div>
+      <Text fontSize="4xl" fontFamily="monospace">
+        Welcome to Hangman!
+      </Text>
       <Button onClick={handleLogout}> Log out :)</Button>
 
       <Invite onModalStateChange={handleModalStateChange} />
