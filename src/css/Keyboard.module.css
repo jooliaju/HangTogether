@@ -16,6 +16,14 @@
   color: black;
 }
 
+.btn.inactive:disabled {
+  background-color: #ff0000;
+  color: black;
+  opacity: 60%;
+}
+
+/* .btn.loser */
+
 .btn:disabled,
 button[disabled] {
   background-color: #e7eef4;

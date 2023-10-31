@@ -32,15 +32,15 @@ const KEYS = [
 type KeyboardProps = {
   activeKeys: string[];
   inactiveKeys: string[];
-  gameOver: boolean;
   addGuessedLetter: (letter: string) => void;
+  gameOver: boolean;
 };
 
 export function Keyboard({
   activeKeys,
   inactiveKeys,
-  gameOver,
   addGuessedLetter,
+  gameOver,
 }: KeyboardProps) {
   return (
     <div
@@ -48,6 +48,7 @@ export function Keyboard({
         display: "grid",
         gridTemplateColumns: "repeat(auto-fit,minmax(75px, 1fr))",
         gap: ".5rem",
+        opacity: gameOver ? ".5" : "1",
       }}
     >
       {KEYS.map((key) => {
@@ -58,6 +59,7 @@ export function Keyboard({
           <button
             className={`${styles.btn} ${isActive ? styles.active : ""} ${
               isInactive ? styles.inactive : ""
+            } }
             }`}
             disabled={isActive || isInactive || gameOver}
             key={key}

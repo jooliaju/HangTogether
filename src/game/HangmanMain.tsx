@@ -9,14 +9,20 @@ import Invite from "../Invite";
 import { Button } from "@chakra-ui/react";
 import { Text } from "@chakra-ui/react";
 import axios from "axios";
+// import getMongoUser from "../auth/MongoUser";
+import { MongoUser, GameData } from "../Types";
+import { set } from "firebase/database";
 
-async function HangmanMain() {
-  const [wordToGuess, setWordToGuess] = useState("microscope");
+function HangmanMain() {
+  // const [user, setUser] = useState<MongoUser | null>();
+  //remove spaces from word
+  const [loading, setLoading] = useState(true); // Initial loading state
+  const [wordToGuess, setWordToGuess] = useState("");
+  const { user } = UserAuth() || {};
+  const [userData, setUserData] = useState<MongoUser | null>();
+  const [gameData, setGameData] = useState<GameData | null>();
 
   const [guessedLetters, setGuessedLetters] = useState<string[]>([]);
-
-  // const { user } = UserAuth()!;
-  // const mongoUser = user ? await getMongoUser(user.uid) : null;
 
   const { logout } = UserAuth()!;
   const navigate = useNavigate();
@@ -37,19 +43,6 @@ async function HangmanMain() {
     }
   };
 
-  // const handleGameData = async () => {
-  //   try {
-  //     if (mongoUser) {
-  //       const response = await axios.get(
-  //         `http://localhost:4000/games/${mongoUser["gameMemberOf"]}'}`
-  //       );
-  //       console.log("User is member of: " + response.data);
-  //     }
-  //   } catch (error) {
-  //     console.error("Error getting game data:", error);
-  //   }
-  // };
-
   const incorrectLetters = guessedLetters.filter(
     (letter) => !wordToGuess.includes(letter)
   );
@@ -66,8 +59,9 @@ async function HangmanMain() {
   );
 
   const isWinner = wordToGuess
-    .split("")
-    .every((letter) => guessedLetters.includes(letter));
+    ? wordToGuess.split("").every((letter) => guessedLetters.includes(letter))
+    : false;
+
   const isLoser = incorrectLetters.length >= 6;
 
   const gameOver = isWinner || isLoser;
@@ -75,7 +69,7 @@ async function HangmanMain() {
   useEffect(() => {
     const handler = (e: KeyboardEvent) => {
       //only add guessed letter if modal is not open
-      if (!modalOpenState) {
+      if (!modalOpenState && !gameOver) {
         const key = e.key;
         if (!key.match(/^[a-z]$/)) return;
         e.preventDefault();
@@ -88,7 +82,66 @@ async function HangmanMain() {
     return () => document.removeEventListener("keypress", handler);
   });
 
-  return (
+  // Fetch game information
+  const fetchGameData = async () => {
+    console.log("fetching game data");
+    if (userData && userData.gameMemberOf != "") {
+      // get game data
+      console.log("user is part of game " + userData.gameMemberOf);
+      try {
+        const userGameData = await axios.get(
+          `http://localhost:4000/games/${userData.gameMemberOf}`
+        );
+        const userGameData_set = userGameData.data;
+
+        setGameData(userGameData_set);
+
+        if (gameData && userData) {
+          console.log("game data is not null");
+          if (userData._id == gameData.partner1.id) {
+            console.log("user is partner 1");
+            console.log("word to guess is " + gameData.partner1.wordToGuess);
+            setWordToGuess(gameData.partner1.wordToGuess);
+          } else if (userData._id == gameData.partner2.id) {
+            console.log("user is partner 2");
+            console.log("word to guess is " + gameData.partner2.wordToGuess);
+            setWordToGuess(gameData.partner2.wordToGuess);
+          }
+        }
+        return userGameData.data;
+      } catch (error) {
+        console.error("Error fetching game data:", error);
+      }
+    }
+  };
+  // Fetch user information from MongoDB, temporary solution
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        console.log("Mongo user data: " + user?.uid);
+        const mongoData = await axios.get(
+          `http://localhost:4000/users/${user?.uid}`
+        );
+        console.log(mongoData.data);
+        const userData_set = mongoData.data;
+        setUserData(userData_set);
+
+        const gameDataResponse = await fetchGameData();
+        console.log("game data response: " + gameDataResponse);
+
+        // if (userData && gameData) {
+        setLoading(false);
+        // }
+      } catch (error) {
+        console.error("Error fetching data:", error);
+      }
+    };
+    fetchData();
+  }, []);
+
+  return loading ? (
+    <p>Loading...</p>
+  ) : (
     <div
       style={{
         maxWidth: "800px",
@@ -99,19 +152,26 @@ async function HangmanMain() {
         alignItems: "center",
       }}
     >
-      <Text fontSize="4xl" fontFamily="monospace">
-        Welcome to Hangman!
-      </Text>
-      <Button onClick={handleLogout}> Log out :)</Button>
+      {/* <Text fontSize="4xl" fontFamily="monospace">
+        Welcome, It's time to guess {userData?.partner}'s word for today!
+      </Text> */}
+      {/* // show loser or isWinner */}
+      {isLoser && <h1>You lost, try again tmrw :)</h1>}
+      <Button onClick={handleLogout}> Log out :P</Button>
 
-      <Invite onModalStateChange={handleModalStateChange} />
+      <Invite
+        onModalStateChange={handleModalStateChange}
+        userData={userData ? userData : null}
+      />
 
       <HangmanDrawing numberOfGuesses={incorrectLetters.length} />
-      <HangmanWord
-        word={wordToGuess}
-        guessedLetters={guessedLetters}
-        reveal={isLoser}
-      />
+      {wordToGuess && (
+        <HangmanWord
+          word={wordToGuess}
+          guessedLetters={guessedLetters}
+          reveal={isLoser}
+        />
+      )}
       <div style={{ width: "100%" }}>
         <Keyboard
           // correct letters are the letters that are in the word to guess

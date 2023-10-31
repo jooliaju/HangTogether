@@ -5,7 +5,7 @@ import { auth } from "./firebase";
 import { useState } from "react";
 import { UserAuth } from "./AuthContext";
 import { useNavigate } from "react-router-dom";
-import { Button } from "@chakra-ui/react";
+import { Button, Input, Stack, Heading, Box } from "@chakra-ui/react";
 
 function Login() {
   const [email, setEmail] = useState("");
@@ -28,25 +28,37 @@ function Login() {
   };
 
   return (
-    <div className="login-container">
-      <h2>Login</h2>
+    <Box
+      p={6}
+      borderWidth={1}
+      borderRadius="lg"
+      boxShadow="lg"
+      w="300px"
+      mx="auto"
+    >
+      {/* <Heading as="h2" size="md" mb={4}>
+        Login
+      </Heading> */}
       <form onSubmit={handleLogin}>
-        <input
-          type="text"
-          placeholder="Email"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-        />
-        <input
-          type="password"
-          placeholder="Password"
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-        />
-
-        <Button type="submit">Login</Button>
+        <Stack spacing={3}>
+          <Input
+            type="text"
+            placeholder="Email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+          />
+          <Input
+            type="password"
+            placeholder="Password"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+          />
+        </Stack>
+        <Button mt={4} colorScheme="blue" type="submit">
+          Login 🥳
+        </Button>
       </form>
-    </div>
+    </Box>
   );
 }
 

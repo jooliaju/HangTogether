@@ -10,10 +10,19 @@ const usersSchema = new Schema({
 });
 
 const gamesSchema = new Schema({
-  partner1: { type: String, required: true },
-  partner2: { type: String, required: true },
+  partner1: {
+    //partner1 is the person who sent the invite
+    id: { type: String, required: true },
+    wordToGuess: { type: String, required: false },
+  },
+  partner2: {
+    //partner2 is the person who accepted the invite
+    id: { type: String, required: true },
+    wordToGuess: { type: String, required: false },
+  },
   dateStarted: { type: Date, required: true },
   activeStatus: { type: Boolean, required: true }, //this changes if someone removes the game
+  wordOfTheDay: { type: String, required: false },
 });
 
 const Users = mongoose.model("Users", usersSchema, "users");

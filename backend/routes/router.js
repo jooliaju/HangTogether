@@ -45,7 +45,7 @@ router.get("/games/:gameId", async (req, res) => {
     const game = await schemas.Games.findById(req.params.gameId);
     res.json(game);
   } catch (error) {
-    res.status(500).json({ error: err.message });
+    res.status(500).json({ error: error.message });
   }
 });
 
@@ -63,9 +63,18 @@ router.post("/newgame", async (req, res) => {
   };
 
   try {
+    console.log(req.body);
     const gameData = new schemas.Games({
-      partner1: req.body.partner1,
-      partner2: req.body.partner2,
+      partner1: {
+        //partner1 is the person who sent the invite
+        id: req.body.partner1,
+        wordToGuess: req.body.partner1WordToGuess,
+      },
+      partner2: {
+        //partner2 is the person who accepted the invite
+        id: req.body.partner2,
+        wordToGuess: req.body.partner2WordToGuess,
+      },
       dateStarted: dateTime,
       activeStatus: true,
     });
@@ -78,9 +87,11 @@ router.post("/newgame", async (req, res) => {
     // Update partneruser info to add game ID they're now a member of
     await updatePartnerInfo(req.body.partner1, {
       gameMemberOf: savedGame._id,
+      partner: req.body.partner2,
     });
     await updatePartnerInfo(req.body.partner2, {
       gameMemberOf: savedGame._id,
+      partner: req.body.partner1,
     });
 
     res.status(201).json(savedGame);
@@ -94,13 +105,13 @@ router.post("/newgame", async (req, res) => {
 // Invitation endpoint
 router.post("/invite", async (req, res) => {
   const recipientEmail = req.body.recipientEmail;
-  const gameId = req.body.gameId;
   const senderId = req.body.senderId;
+  const wordForPartner2 = req.body.wordToGuess;
 
   const tokenData = {
     recipientEmail: recipientEmail,
     whoSentInvite: senderId,
-    gameId: gameId,
+    wordForPartner2: wordForPartner2,
   };
   const token = generateToken(tokenData);
 
