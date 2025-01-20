@@ -15,15 +15,19 @@ function Login() {
 
   const handleLogin = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    console.log("User Logged In:", { email, password });
 
-    //write try catch
     try {
       await signIn(email, password);
-      console.log("logged in");
-      navigate("/hangman");
-    } catch (error) {
-      console.log(error);
+      console.log("Successfully logged in");
+      navigate("/dashboard");
+    } catch (error: any) {
+      console.error("Login error:", error);
+      // You might want to show this error to the user
+      if (error.code === "auth/invalid-login-credentials") {
+        alert("Invalid email or password. Please try again.");
+      } else {
+        alert("An error occurred during login. Please try again.");
+      }
     }
   };
 

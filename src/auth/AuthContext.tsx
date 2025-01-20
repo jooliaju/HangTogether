@@ -49,6 +49,7 @@ export const AuthContextProvider = ({ children }: AuthContextProviderProps) => {
 
       console.log(userCredential.user.uid);
       // Axios call to save user to MongoDB
+      console.log("Saving user to MongoDB");
       await axios
         .post("http://localhost:4000/users", {
           _id: userCredential.user.uid,
@@ -71,12 +72,13 @@ export const AuthContextProvider = ({ children }: AuthContextProviderProps) => {
     }
   };
 
-  const signIn = (email: string, password: string) => {
+  const signIn = async (email: string, password: string) => {
     try {
-      return signInWithEmailAndPassword(auth, email, password);
+      const result = await signInWithEmailAndPassword(auth, email, password);
+      return result;
     } catch (error) {
-      console.log(error);
-      throw Error("signIn failed");
+      console.error("Sign in error:", error);
+      throw error;
     }
   };
 

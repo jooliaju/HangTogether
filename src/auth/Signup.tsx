@@ -21,8 +21,7 @@ function Signup() {
 
     try {
       await createUser(email, password);
-      console.log("signed up");
-      navigate("/hangman");
+      navigate("/dashboard");
     } catch (error) {
       console.log(error);
     }

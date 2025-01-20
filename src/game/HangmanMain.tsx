@@ -7,25 +7,24 @@ import { UserAuth } from "../auth/AuthContext";
 import { useNavigate } from "react-router-dom";
 import Invite from "../Invite";
 import { Button } from "@chakra-ui/react";
-import { Text } from "@chakra-ui/react";
 import axios from "axios";
 // import getMongoUser from "../auth/MongoUser";
 import { MongoUser, GameData } from "../Types";
-import { set } from "firebase/database";
 
 function HangmanMain() {
   // const [user, setUser] = useState<MongoUser | null>();
   //remove spaces from word
   const [loading, setLoading] = useState(true); // Initial loading state
   const [wordToGuess, setWordToGuess] = useState("");
+  const [wordLoaded, setWordLoaded] = useState(false); // Add this state
   const { user } = UserAuth() || {};
   const [userData, setUserData] = useState<MongoUser | null>();
   const [gameData, setGameData] = useState<GameData | null>();
 
   const [guessedLetters, setGuessedLetters] = useState<string[]>([]);
 
-  const { logout } = UserAuth()!;
   const navigate = useNavigate();
+  const { logout } = UserAuth()!;
 
   //handling modal state
   const [modalOpenState, setModalOpenState] = useState(false);
@@ -85,59 +84,83 @@ function HangmanMain() {
   // Fetch game information
   const fetchGameData = async () => {
     console.log("fetching game data");
-    if (userData && userData.gameMemberOf != "") {
-      // get game data
-      console.log("user is part of game " + userData.gameMemberOf);
+    if (userData && userData.gameMemberOf !== "") {
       try {
+        console.log("User's game ID:", userData.gameMemberOf); // Debug log
         const userGameData = await axios.get(
           `http://localhost:4000/games/${userData.gameMemberOf}`
         );
-        const userGameData_set = userGameData.data;
+        const gameDataResponse = userGameData.data;
+        console.log("Game data received:", gameDataResponse); // Debug log
 
-        setGameData(userGameData_set);
-
-        if (gameData && userData) {
-          console.log("game data is not null");
-          if (userData._id == gameData.partner1.id) {
-            console.log("user is partner 1");
-            console.log("word to guess is " + gameData.partner1.wordToGuess);
-            setWordToGuess(gameData.partner1.wordToGuess);
-          } else if (userData._id == gameData.partner2.id) {
-            console.log("user is partner 2");
-            console.log("word to guess is " + gameData.partner2.wordToGuess);
-            setWordToGuess(gameData.partner2.wordToGuess);
-          }
+        // Set game data and word to guess in one go
+        if (userData._id === gameDataResponse.partner1.id) {
+          console.log(
+            "Setting word for partner 1:",
+            gameDataResponse.partner1.wordToGuess
+          );
+          setWordToGuess(gameDataResponse.partner1.wordToGuess);
+          setWordLoaded(true);
+        } else if (userData._id === gameDataResponse.partner2.id) {
+          console.log(
+            "Setting word for partner 2:",
+            gameDataResponse.partner2.wordToGuess
+          );
+          setWordToGuess(gameDataResponse.partner2.wordToGuess);
+          setWordLoaded(true);
+        } else {
+          console.log("User ID doesn't match either partner"); // Debug log
         }
-        return userGameData.data;
+
+        setGameData(gameDataResponse);
+        return gameDataResponse;
       } catch (error) {
         console.error("Error fetching game data:", error);
       }
+    } else {
+      console.log("User not in a game yet"); // Debug log
     }
   };
-  // Fetch user information from MongoDB, temporary solution
+
+  // Separate useEffect for fetching game data
+  useEffect(() => {
+    if (userData) {
+      fetchGameData();
+    }
+  }, [userData]); // This will run whenever userData changes
+
+  // Modify the user data fetching useEffect
   useEffect(() => {
     const fetchData = async () => {
       try {
-        console.log("Mongo user data: " + user?.uid);
+        if (!user?.uid) {
+          console.log("No user UID available yet");
+          return;
+        }
+
+        console.log("Fetching user data for:", user.uid);
         const mongoData = await axios.get(
-          `http://localhost:4000/users/${user?.uid}`
+          `http://localhost:4000/users/${user.uid}`
         );
-        console.log(mongoData.data);
-        const userData_set = mongoData.data;
-        setUserData(userData_set);
 
-        const gameDataResponse = await fetchGameData();
-        console.log("game data response: " + gameDataResponse);
-
-        // if (userData && gameData) {
-        setLoading(false);
-        // }
+        console.log("Received MongoDB user data:", mongoData.data);
+        setUserData(mongoData.data);
       } catch (error) {
-        console.error("Error fetching data:", error);
+        console.error("Error fetching user data:", error);
+      } finally {
+        setLoading(false);
       }
     };
-    fetchData();
-  }, []);
+
+    // Call immediately if we have a user
+    if (user?.uid) {
+      console.log("User available, fetching data");
+      fetchData();
+    } else {
+      console.log("Waiting for user authentication");
+      setLoading(false);
+    }
+  }, [user]); // Changed dependency to just user
 
   return loading ? (
     <p>Loading...</p>
@@ -165,20 +188,16 @@ function HangmanMain() {
       />
 
       <HangmanDrawing numberOfGuesses={incorrectLetters.length} />
-      {wordToGuess && (
-        <HangmanWord
-          word={wordToGuess}
-          guessedLetters={guessedLetters}
-          reveal={isLoser}
-        />
-      )}
+      <HangmanWord
+        word={wordLoaded ? wordToGuess : ""}
+        guessedLetters={guessedLetters}
+        reveal={isLoser}
+      />
       <div style={{ width: "100%" }}>
         <Keyboard
-          // correct letters are the letters that are in the word to guess
           activeKeys={guessedLetters.filter((letter) =>
             wordToGuess.includes(letter)
           )}
-          // incorrect letters are the letters that are not in the word
           inactiveKeys={incorrectLetters}
           gameOver={gameOver}
           addGuessedLetter={addGuessedLetter}
