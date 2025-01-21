@@ -35,6 +35,52 @@ router.get("/user/:userId", async (req, res) => {
   }
 });
 
+// Add this new endpoint
+router.get("/user/:userId/withPartners", async (req, res) => {
+  try {
+    const userId = req.params.userId;
+    const games = await schemas.Games.find({
+      $or: [{ "partner1.id": userId }, { "partner2.id": userId }],
+    }).sort({ dateStarted: -1 });
+
+    // Transform the games to include partner info
+    const gamesWithPartners = await Promise.all(
+      games.map(async (game) => {
+        const isPartner1 = game.partner1.id === userId;
+        const partnerId = isPartner1 ? game.partner2.id : game.partner1.id;
+
+        // Get partner's user info
+        const partnerInfo = await schemas.Users.findById(partnerId);
+
+        return {
+          gameId: game._id,
+          partner: {
+            id: partnerId,
+            userName: partnerInfo?.userName || "Unknown Player",
+            email: partnerInfo?.email,
+          },
+          dateStarted: game.dateStarted,
+          activeStatus: game.activeStatus,
+          yourWord: isPartner1
+            ? game.partner1.wordToGuess
+            : game.partner2.wordToGuess,
+          theirWord: isPartner1
+            ? game.partner2.wordToGuess
+            : game.partner1.wordToGuess,
+        };
+      })
+    );
+
+    res.json(gamesWithPartners);
+  } catch (error) {
+    console.error("Error fetching games with partners:", error);
+    res.status(500).json({
+      message: "Error fetching games with partners",
+      error: error.message,
+    });
+  }
+});
+
 // Create new game
 router.post("/new", async (req, res) => {
   const dateTime = new Date();

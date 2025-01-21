@@ -7,8 +7,12 @@ import { useNavigate } from "react-router-dom";
 import { UserAuth } from "./AuthContext";
 import { Button, Input, Stack, Heading, Box } from "@chakra-ui/react";
 
-function Signup() {
-  const [username, setUsername] = useState("");
+interface SignupProps {
+  onSuccess?: () => void;
+}
+
+function Signup({ onSuccess }: SignupProps) {
+  const [userName, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [email, setEmail] = useState("");
   const { createUser } = UserAuth();
@@ -21,7 +25,7 @@ function Signup() {
 
     try {
       await createUser(email, password);
-      navigate("/dashboard");
+      onSuccess?.();
     } catch (error) {
       console.log(error);
     }

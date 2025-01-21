@@ -2,9 +2,24 @@ import { Box, Button, Heading, VStack, Text } from "@chakra-ui/react";
 import Signup from "./auth/Signup";
 import Login from "./auth/Login";
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 
 export function Home() {
   const [showLogin, setShowLogin] = useState(false);
+  const navigate = useNavigate();
+
+  // Check if we're coming from an invitation link
+  const isInvitationPath = window.location.pathname === "/invitation";
+  const inviteToken = new URLSearchParams(window.location.search).get("token");
+
+  // After successful login/signup, redirect with invitation data
+  const handleAuthSuccess = () => {
+    if (isInvitationPath && inviteToken) {
+      navigate(`/dashboard?invite=${inviteToken}`);
+    } else {
+      navigate("/dashboard");
+    }
+  };
 
   return (
     <Box
@@ -26,7 +41,7 @@ export function Home() {
       <VStack spacing={4}>
         {showLogin ? (
           <>
-            <Login />
+            <Login onSuccess={handleAuthSuccess} />
             <Text>
               Need an account?{" "}
               <Button variant="link" onClick={() => setShowLogin(false)}>
@@ -36,7 +51,7 @@ export function Home() {
           </>
         ) : (
           <>
-            <Signup />
+            <Signup onSuccess={handleAuthSuccess} />
             <Text>
               Have an account?{" "}
               <Button variant="link" onClick={() => setShowLogin(true)}>

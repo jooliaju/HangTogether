@@ -30,9 +30,19 @@ function Invitation() {
   const [partner1WordToGuess, setPartner1WordToGuess] = useState("");
   const [showWordInput, setShowWordInput] = useState(false);
   const [showLoginForm, setShowLoginForm] = useState(false);
+  const [emailVerified, setEmailVerified] = useState(false);
 
-  // Check if user needs to sign up
-  const needsSignup = !user || user.email !== decodedToken?.recipientEmail;
+  // Redirect to dashboard if user is logged in but no token is present
+  useEffect(() => {
+    if (user && !token) {
+      navigate("/dashboard");
+    }
+  }, [user, token, navigate]);
+
+  // Handle successful game creation
+  const handleGameCreated = () => {
+    navigate("/dashboard");
+  };
 
   const handleAccept1 = async () => {
     setInviteClose(true);
@@ -41,20 +51,22 @@ function Invitation() {
 
   const handleAccept2 = async () => {
     try {
-      console.log(decodedToken?.wordForPartner2);
-      const response = await axios.post("http://localhost:4000/newGame", {
+      const response = await axios.post("http://localhost:4000/games/new", {
         partner1: decodedToken?.senderId,
         partner1WordToGuess: partner1WordToGuess,
         partner2: user?.uid,
         partner2WordToGuess: decodedToken?.wordForPartner2,
       });
       console.log("Game created successfully", response.data);
-
-      setShowWordInput(false);
-      navigate("/hangman");
+      navigate("/dashboard");
     } catch (error) {
       console.error("Error creating game", error);
     }
+  };
+
+  // Handle decline/cancel
+  const handleDecline = () => {
+    navigate("/dashboard");
   };
 
   useEffect(() => {
@@ -74,6 +86,25 @@ function Invitation() {
     }
   }, [token]);
 
+  // Check email verification whenever user or token changes
+  useEffect(() => {
+    if (user && decodedToken) {
+      console.log(
+        "Checking emails - User:",
+        user.email,
+        "Invite:",
+        decodedToken.recipientEmail
+      );
+      if (user.email === decodedToken.recipientEmail) {
+        setEmailVerified(true);
+      } else {
+        console.log("Email mismatch - redirecting to home");
+        setEmailVerified(false);
+        navigate("/");
+      }
+    }
+  }, [user, decodedToken, navigate]);
+
   return (
     <div
       style={{
@@ -88,50 +119,39 @@ function Invitation() {
         Le Invitation
       </Text>
 
-      {needsSignup ? (
+      {!user ? (
         <VStack spacing={4}>
           <Card variant="filled" shadow="lg">
             <CardHeader>
-              <Heading size="md">
-                Welcome! sign in to accept the invitation
-              </Heading>
+              <Heading size="md">Sign in to continue</Heading>
             </CardHeader>
             <CardBody>
               <Text mb={4}>
-                The game invite is for {String(decodedToken?.recipientEmail)}
+                This invitation was sent to:{" "}
+                {String(decodedToken?.recipientEmail)}
               </Text>
               {showLoginForm ? (
                 <>
                   <Login />
-                  <p>
-                    Don't have an account?{" "}
-                    <Button
-                      variant="link"
-                      onClick={() => setShowLoginForm(false)}
-                    >
-                      Sign up here
-                    </Button>
-                  </p>
+                  <Button
+                    variant="link"
+                    onClick={() => setShowLoginForm(false)}
+                  >
+                    Need to sign up?
+                  </Button>
                 </>
               ) : (
                 <>
                   <Signup />
-
-                  <p>
-                    Already have an account?{" "}
-                    <Button
-                      variant="link"
-                      onClick={() => setShowLoginForm(true)}
-                    >
-                      Login here
-                    </Button>
-                  </p>
+                  <Button variant="link" onClick={() => setShowLoginForm(true)}>
+                    Already have an account?
+                  </Button>
                 </>
               )}
             </CardBody>
           </Card>
         </VStack>
-      ) : (
+      ) : emailVerified ? (
         <>
           {!inviteClose && (
             <Card variant="filled" shadow="lg">
@@ -149,15 +169,13 @@ function Invitation() {
                   margin="10px"
                   onClick={handleAccept1}
                 >
-                  Yes, I want to play hangman with them
+                  Accept Invitation
                 </Button>
                 <Button
                   colorScheme="gray"
                   margin="10px"
                   variant="outline"
-                  onClick={() => {
-                    setInviteClose(true);
-                  }}
+                  onClick={handleDecline}
                 >
                   Decline
                 </Button>
@@ -200,6 +218,23 @@ function Invitation() {
             </Card>
           )}
         </>
+      ) : (
+        <Card variant="filled" shadow="lg">
+          <CardHeader>
+            <Heading size="md">Wrong Email Address</Heading>
+          </CardHeader>
+          <CardBody>
+            <Text>
+              This invitation was sent to {String(decodedToken?.recipientEmail)}
+            </Text>
+            <Text>Please log in with the correct email address.</Text>
+          </CardBody>
+          <CardFooter>
+            <Button onClick={() => navigate("/dashboard")}>
+              Go to Dashboard
+            </Button>
+          </CardFooter>
+        </Card>
       )}
     </div>
   );

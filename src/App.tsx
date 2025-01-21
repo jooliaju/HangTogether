@@ -13,24 +13,23 @@ function App() {
       <ChakraProvider>
         <Routes>
           <Route path="/" element={<Home />} />
-          <Route path="/dashboard" element={<Dashboard />} />
-          <Route path="/hangman/:gameId" element={<HangmanMain />} />
           <Route
-            path="/hangman"
+            path="/dashboard"
+            element={
+              <ProtectedRoute>
+                <Dashboard />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/hangman/:gameId"
             element={
               <ProtectedRoute>
                 <HangmanMain />
               </ProtectedRoute>
             }
           />
-          <Route
-            path="/invitation"
-            element={
-              <ProtectedRoute>
-                <Invitation />
-              </ProtectedRoute>
-            }
-          ></Route>
+          <Route path="/invitation" element={<Invitation />} />
         </Routes>
       </ChakraProvider>
     </AuthContextProvider>

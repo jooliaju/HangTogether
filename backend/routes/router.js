@@ -11,6 +11,6 @@ router.get("/", (req, res) => {
 // Mount the routes
 router.use("/games", gameRoutes);
 router.use("/users", userRoutes);
-router.use("/mail", mailRoutes);
+router.use("/invite", mailRoutes);
 
 module.exports = router;

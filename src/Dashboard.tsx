@@ -11,31 +11,22 @@ import {
   Heading,
   Text,
   VStack,
+  useDisclosure,
 } from "@chakra-ui/react";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
-import { MongoUser, GameData } from "./Types";
-
-interface Game {
-  _id: string;
-  partner1: {
-    id: string;
-    wordToGuess: string;
-  };
-  partner2: {
-    id: string;
-    wordToGuess: string;
-  };
-  dateStarted: string;
-  activeStatus: boolean;
-}
+import { GameWithPartnerInfo, MongoUser } from "./Types";
+import Invite from "./Invite";
 
 function Dashboard() {
   const { user, logout } = UserAuth()!;
   const [userData, setUserData] = useState<MongoUser | null>(null);
-  const [games, setGames] = useState<Game[]>([]);
+  const [games, setGames] = useState<GameWithPartnerInfo[]>([]);
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
+  const { isOpen, onOpen, onClose } = useDisclosure();
+  const [showInviteModal, setShowInviteModal] = useState(false);
+  const [inviteToken, setInviteToken] = useState<string | null>(null);
 
   useEffect(() => {
     const fetchUserData = async () => {
@@ -61,13 +52,9 @@ function Dashboard() {
   useEffect(() => {
     const fetchGames = async () => {
       try {
-        console.log("Fetching games for user:", userData?._id);
-        if (!userData?._id) {
-          console.log("No user ID available");
-          return;
-        }
+        if (!userData?._id) return;
 
-        const url = `http://localhost:4000/games/user/${userData._id}`;
+        const url = `http://localhost:4000/games/user/${userData._id}/withPartners`;
         console.log("Making request to:", url);
 
         const response = await axios.get(url);
@@ -89,6 +76,17 @@ function Dashboard() {
     }
   }, [userData]);
 
+  useEffect(() => {
+    const token = new URLSearchParams(window.location.search).get("invite");
+    console.log("Checking for invite token:", token);
+    if (token) {
+      setInviteToken(token);
+      setShowInviteModal(true);
+      // Clean up URL
+      window.history.replaceState({}, document.title, "/dashboard");
+    }
+  }, []);
+
   const handleLogout = async () => {
     try {
       await logout();
@@ -101,49 +99,90 @@ function Dashboard() {
   if (loading) return <Text>Loading your games...</Text>;
 
   return (
-    <Box p={8}>
-      <VStack spacing={8} align="stretch">
-        <Box display="flex" justifyContent="space-between" alignItems="center">
-          <Heading>Welcome, {userData?.userName || "Player"}!</Heading>
-          <Button onClick={handleLogout}>Logout</Button>
-        </Box>
+    <>
+      <Box p={8}>
+        <VStack spacing={8} align="stretch">
+          <Box
+            display="flex"
+            justifyContent="space-between"
+            alignItems="center"
+          >
+            <Heading>Welcome, {userData?.userName || "Player"}!</Heading>
+            <Box>
+              <Button onClick={handleLogout} ml={4}>
+                Logout
+              </Button>
+            </Box>
+          </Box>
 
-        {games.length === 0 ? (
-          <Text fontSize="lg" textAlign="center">
-            You haven't started any games yet!
-          </Text>
-        ) : (
-          <Grid templateColumns="repeat(auto-fill, minmax(300px, 1fr))" gap={6}>
-            {games.map((game) => (
-              <Card key={game._id}>
-                <CardHeader>
-                  <Heading size="md">
-                    Game with{" "}
-                    {user?.uid === game.partner1.id ? "Partner 2" : "Partner 1"}
-                  </Heading>
-                </CardHeader>
-                <CardBody>
-                  <Text>
-                    Started: {new Date(game.dateStarted).toLocaleDateString()}
-                  </Text>
-                  <Text>
-                    Status: {game.activeStatus ? "Active" : "Completed"}
-                  </Text>
+          {games.length === 0 ? (
+            <Text fontSize="lg" textAlign="center">
+              You haven't started any games yet!
+            </Text>
+          ) : (
+            <Grid
+              templateColumns="repeat(auto-fill, minmax(300px, 1fr))"
+              gap={6}
+            >
+              <Card>
+                <CardBody
+                  display="flex"
+                  justifyContent="center"
+                  alignItems="center"
+                >
+                  <Button onClick={onOpen}>Invite +</Button>
+                  <Invite
+                    isOpen={isOpen}
+                    onClose={onClose}
+                    userData={userData}
+                  />
                 </CardBody>
-                <CardFooter>
-                  <Button
-                    colorScheme="blue"
-                    onClick={() => navigate(`/hangman/${game._id}`)}
-                  >
-                    Play Game
-                  </Button>
-                </CardFooter>
               </Card>
-            ))}
-          </Grid>
-        )}
-      </VStack>
-    </Box>
+
+              {games.map((game) => (
+                <Card key={game.gameId}>
+                  <CardHeader>
+                    <Heading size="md">
+                      Game with {game.partner.userName}
+                    </Heading>
+                  </CardHeader>
+                  <CardBody>
+                    <Text>
+                      Started: {new Date(game.dateStarted).toLocaleDateString()}
+                    </Text>
+                    <Text>
+                      Status: {game.activeStatus ? "Active" : "Completed"}
+                    </Text>
+                  </CardBody>
+                  <CardFooter>
+                    <Button
+                      colorScheme="blue"
+                      onClick={() => navigate(`/hangman/${game.gameId}`)}
+                    >
+                      Play Game
+                    </Button>
+                  </CardFooter>
+                </Card>
+              ))}
+            </Grid>
+          )}
+        </VStack>
+      </Box>
+
+      {showInviteModal && inviteToken && (
+        <Invite
+          isOpen={showInviteModal}
+          onClose={() => setShowInviteModal(false)}
+          token={inviteToken}
+          userData={userData}
+          onComplete={() => {
+            setShowInviteModal(false);
+            // Refresh games list
+            fetchGames();
+          }}
+        />
+      )}
+    </>
   );
 }
 

@@ -7,7 +7,11 @@ import { UserAuth } from "./AuthContext";
 import { useNavigate } from "react-router-dom";
 import { Button, Input, Stack, Heading, Box } from "@chakra-ui/react";
 
-function Login() {
+interface LoginProps {
+  onSuccess?: () => void;
+}
+
+function Login({ onSuccess }: LoginProps) {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const { signIn } = UserAuth();
@@ -19,10 +23,9 @@ function Login() {
     try {
       await signIn(email, password);
       console.log("Successfully logged in");
-      navigate("/dashboard");
+      onSuccess?.();
     } catch (error: any) {
       console.error("Login error:", error);
-      // You might want to show this error to the user
       if (error.code === "auth/invalid-login-credentials") {
         alert("Invalid email or password. Please try again.");
       } else {

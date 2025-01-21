@@ -183,7 +183,8 @@ function HangmanMain() {
       <Button onClick={handleLogout}> Log out :P</Button>
 
       <Invite
-        onModalStateChange={handleModalStateChange}
+        isOpen={modalOpenState}
+        onClose={() => setModalOpenState(false)}
         userData={userData ? userData : null}
       />
 
